@@ -5,6 +5,10 @@ import time
 import HandTrackingModule as htm
 import math
 
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+
 
 wcam, hcam = 640, 480
 
@@ -19,23 +23,22 @@ detector = htm.handDetector(detectionCon=0.75 , trackCon= 0.69)  #default parame
 
 
 
-from ctypes import cast, POINTER
-from comtypes import CLSCTX_ALL
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+
 devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(
     IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
-volume.GetMute()
-volume.GetMasterVolumeLevel()
-volume.GetVolumeRange()
-volume.SetMasterVolumeLevel(-20.0, None)
+#volume.GetMute()
+#volume.GetMasterVolumeLevel()
+volRange = volume.GetVolumeRange()   #  -65 --> 0.
+
+minVol = volRange[0]
+maxVol = volRange[1]
 
 
-
-
-
-
+vol = 0
+volBar = 400
+volP = 0
 
 
 while True:
@@ -54,12 +57,22 @@ while True:
 
 
           length = math.hypot(x2-x1, y2-y1)
-          print(length)  # 30 --> 220
+          #print(length)  # 15 --> 209   volume range from   -65 to zero.
 
+          # conversions of vol.Ranges.( uses a function named interp of numpy lib.)
+          vol = np.interp(length, [14, 190], [minVol, maxVol])
+          volBar = np.interp(length, [14, 190], [400, 150])
+          volP = np.interp(length, [14, 190], [0, 100])
+          print(vol)
+          volume.SetMasterVolumeLevel(vol, None)
 
-          if length < 33:
+          if length < 20:
                cv2.circle(img, (cx, cy), 9, (0, 255, 0), cv2.FILLED)
 
+             #volume bar
+     cv2.rectangle(img,(50,150),(75,400),(255, 255, 0), 3)
+     cv2.rectangle(img, (50, int(volBar)), (75, 400), (255, 255, 0), cv2.FILLED)
+     cv2.putText(img, f'volume: {int(volP)} %', (40, 450), cv2.FONT_HERSHEY_PLAIN, 2, (255,255,0),3)
 
 
      cTime = time.time()
