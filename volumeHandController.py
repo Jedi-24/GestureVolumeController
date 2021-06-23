@@ -19,7 +19,7 @@ cap.set(3, wcam)
 cap.set(4, hcam)
 pTime = 0
 #detector is an object of the class handDetector
-detector = htm.handDetector(detectionCon=0.75 , trackCon= 0.69)  #default parameters present in class already , no need to pass anything
+detector = htm.handDetector(detectionCon=0.75, trackCon= 0.69)  #default parameters present in class already , no need to pass anything
 
 
 

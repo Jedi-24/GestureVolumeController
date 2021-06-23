@@ -15,6 +15,7 @@ class handDetector():
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.detectionCon, self.trackCon)  # made an object from the class 'hands'
         self.mpDraw = mp.solutions.drawing_utils
+        self.Ftips = [4, 8, 12, 16, 20]
 
 
     def findHands(self,img , draw = True):
@@ -32,7 +33,7 @@ class handDetector():
 
     def findPosition(self, img, handNo=0, draw=True):
 
-        lmList= []
+        self.lmList= []
         if self.results.multi_hand_landmarks:
             myHand = self.results.multi_hand_landmarks[handNo]
 
@@ -41,13 +42,29 @@ class handDetector():
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 #print(id, cx, cy)
-                lmList.append([id,cx,cy])
+                self.lmList.append([id, cx, cy])
                 if draw:
-                    cv2.circle(img, (cx, cy), 7, (255, 255,0 ), cv2.FILLED)
+                    cv2.circle(img, (cx, cy), 7, (255, 255, 0), cv2.FILLED)
 
-        return lmList
+        return self.lmList
 
+#important function to be used in virtual mouse project.
+    def fingerUp(self):
+        fingers = []
+        # for thumb only :)
+        if self.lmList[self.Ftips[0]][1] < self.lmList[self.Ftips[0] - 1][1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
 
+        #for four fingers :)
+        for id in range(1, 5):
+            if self.lmList[self.Ftips[id]][2] < self.lmList[self.Ftips[id] - 2][2]:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+
+        return fingers
 
 
 def main():
